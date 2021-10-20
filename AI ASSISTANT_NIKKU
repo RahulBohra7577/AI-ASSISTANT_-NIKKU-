@@ -1,0 +1,243 @@
+import pyttsx3
+import datetime
+import speech_recognition as sr
+import sys
+import wikipedia
+import smtplib
+import webbrowser as wb
+import os
+import pyaudio
+import wave
+
+engine=pyttsx3.init()
+r=sr.Recognizer()
+
+voice=engine.getProperty('voices')
+engine.setProperty('voice',voice[1].id)
+
+newVoiceRate=180
+engine.setProperty('rate',newVoiceRate)
+engine.runAndWait()
+
+def speak(audio):
+    engine.say(audio)
+    engine.runAndWait()
+    
+def date():
+    Year=int(datetime.datetime.now().year)
+    Month=int(datetime.datetime.now().month)
+    Date=int(datetime.datetime.now().day)
+    speak('Todays date is')
+    speak(Date)
+    speak(Month)
+    speak(Year)
+    
+def time():
+    Time=datetime.datetime.now().strftime("%I:%M:%S")
+    speak('Current Time is')
+    speak(Time)
+    
+def Wishme():
+    speak('Hello , welcome sir!')
+    
+    hour=datetime.datetime.now().hour
+
+    if hour>=6 and hour<12:
+        speak('Good morning ')
+    elif hour>=12 and hour<18:
+        speak('Good afternoon ')
+    elif hour>=18 and hour<22:
+        speak('Good evening ')
+    else:
+        speak('good night ')
+        
+    speak('How can i help you ?')
+    
+def takeCommand():
+    with sr.Microphone() as source:
+        print('Listening...')
+        r.pause_threshold=1
+        audio=r.listen(source)
+    try:
+        print('Recognizing...')
+        text=r.recognize_google(audio)
+        print("YOU SAID :",text)
+    except:
+        speak("say that again please...")
+        return "none"
+    
+    return text
+def Uname():
+    speak("THIS IS POPAT")
+    speak("how can i help you")
+    
+    #speak("nice name")
+    
+def sendemail(to,content):
+    server=smtplib.SMTP(host='smtp@gmail.com',port=587)
+    server.ehlo()
+    server.starttls()
+    server.login("therahulbohra123@gmail.com","Rahulraj@")
+    server.sendmail("brbohra7577@gmail.com",to,content)
+    server.close()
+    
+def google_search():
+    speak("what should i search")
+    search=takeCommand().lower()
+    wb.open_new_tab(search + ".com")
+    speak("do you want to search any other topic")
+    again=takeCommand().lower()
+    if "yes" in again:
+        google_search()
+        
+    else:
+        pass
+    
+def Wikipedia():
+    speak("what you want to search")
+    query=takeCommand()
+    speak("searching...")
+    #query=query.replace("wikipedia","")
+    result=wikipedia.summary(query,sentences=3)
+    speak(result)
+    speak("do you want to search any other")
+    query=takeCommand()
+    if "no" in query:
+         pass
+    elif "yes" in query:
+         Wikipedia()
+    else:
+        speak("say that again please !")
+        
+def save():
+    speak("what should i save?")
+    data=takeCommand()
+    speak("you said me to save : "+data)
+    save_text=open("C:\\Users\\Rahul\\Desktop\\notebook\\data.txt","w")
+    save_text.write(data)
+    save_text.close()
+    
+def tall_save():
+    speak_text=open("C:\\Users\\Rahul\\Desktop\\notebook\\data.txt","r")
+    speak(speak_text.read())
+    remember.close()
+        
+def play_song():
+    songs_dir="E:\Music\Toran songas"
+    songs=os.listdir(songs_dir)
+    os.startfile(os.path.join(songs_dir, songs[2]))
+    
+def RecordAudio():
+    # record in chunk of 1024 samples
+    chunk=1024
+    # 16 bits per sample
+    sample_format=pyaudio.paInt16
+    channels=2
+    # record at 44100 sample per second
+    fs=44100
+    seconds=30
+    filename="C:\\Users\\Rahul\\Desktop\\notebook//myrecording0.wav"
+    # create an interface to portaudio
+    p=pyaudio.PyAudio()
+    print("recording...")
+    stream=p.open(format=sample_format,
+                  channels=channels,
+                  rate=fs,
+                  frames_per_buffer=chunk,
+                  input=True)
+    # initialize array to store frames
+    frames=[]
+    # store data in chunks for 5 seconds
+    for i in range(0,int(fs/chunk*seconds)):
+        data=stream.read(chunk)
+        frames.append(data)
+    # stop and close stream
+    stream.stop_stream()
+    stream.close()
+    # terminate the portaudio interface
+    p.terminate()
+    print("finished recording...")
+    # save the recorded data as a wav file
+    wf=wave.open(filename,'wb')
+    wf.setnchannels(channels)
+    wf.setsampwidth(p.get_sample_size(sample_format))
+    wf.setframerate(fs)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+    
+def PlayAudio():
+    filename="C:\\Users\\Rahul\\Desktop\\notebook//myrecording0.wav"
+    # set chunk size of 1024 samples per data frame
+    chunk=1024
+    # open sound file
+    wf=wave.open(filename,'rb')
+    # create an interface to PortAudio
+    p=pyaudio.PyAudio()
+    # open a stream object to write the wav file 
+    stream=p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                  channels=wf.getnchannels(),
+                  rate=wf.getframerate(),output=True)
+    #read data in chunks
+    data=wf.readframes(chunk)
+    # play the sound by writing the audio data to the stream
+    while data !='':
+        stream.write(data)
+        data=wf.readframes(chunk)
+    # close and terminate the stream
+    stream.close()
+    p.terminate()
+
+
+if __name__ == "__main__":
+    
+    Wishme()
+    
+    while True:
+        query=takeCommand().lower()
+        
+        if "time" in query:
+            time()
+            
+        elif "date" in query:
+            date()
+            
+        elif "your name" in query:
+            Uname()
+            
+        elif "your age" in query:
+            speak("sorry ! I am a AI assistant")
+            
+        elif "wikipedia" in query:
+             Wikipedia()
+            
+        elif 'send email' in query:
+            try:
+                speak("what should i say")
+                content=takeCommand()
+                to ="brbohra7577@gmail.com"
+                sendemail(to,content)
+                speak("the mail send seccessfully")
+            except Exception as e:
+                speak(e)
+                speak("unable to send the message ")
+                
+        elif "search in chrome" in query:
+             google_search()
+            
+        elif "play song" in query:
+             play_song()
+                
+        elif "save" in query:
+            save()
+        elif "what you save" in query:
+            tall_save()
+            
+        elif "record" in query:
+            RecordAudio()
+            
+        elif "play recorded" in query:
+            PlayAudio()
+            
+        elif "go offline" in query:
+            sys.exit()
+            
